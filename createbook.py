@@ -8,11 +8,34 @@ from tkinter.scrolledtext import ScrolledText
 from tkinterhtml import HtmlFrame
 from bs4 import BeautifulSoup
 import shutil
+import zipfile
 
 allowed_chars = "1234567890-"
 
 def validate(char, entry_value):
     return char in allowed_chars
+
+def extract_images_from_epub(epub_file_path, output_folder):
+    """
+    Extracts images from an EPUB file located in any path containing 'images/' and saves them to the specified output folder.
+
+    Parameters:
+    - epub_file_path (str): Path to the EPUB file.
+    - output_folder (str): Folder where extracted images will be saved.
+    """
+    try:
+        with zipfile.ZipFile(epub_file_path, 'r') as epub_zip:
+            for file_info in epub_zip.infolist():
+                if 'images/' in file_info.filename and not file_info.is_dir():
+                    # Extract image file
+                    filename = os.path.basename(file_info.filename)
+                    output_path = os.path.join(output_folder, filename)
+                    with epub_zip.open(file_info) as source, open(output_path, 'wb') as target:
+                        shutil.copyfileobj(source, target)
+                    print(f"Extracted: {filename} to {output_path}")
+        print("Extraction completed successfully!")
+    except Exception as e:
+        print(f"Error extracting images from EPUB: {str(e)}")
 
 class EPUBToJSONConverter(tk.Tk):
     def __init__(self):
@@ -24,7 +47,7 @@ class EPUBToJSONConverter(tk.Tk):
         self.current_file_path = None
         self.current_page = 0
         self.current_chapter = 0
-        self.lines_per_page = 20
+        self.book_images = {}
 
         # Create GUI elements
         self.text_widget = ScrolledText(self, wrap='word', state='disabled')
@@ -88,8 +111,6 @@ class EPUBToJSONConverter(tk.Tk):
             "chapters": []
         }
 
-        total_pages = 0  # Initialize total page counter
-
         for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
             soup = BeautifulSoup(item.get_body_content().decode('utf-8'), 'html.parser')
             text_data = str(soup)
@@ -101,6 +122,11 @@ class EPUBToJSONConverter(tk.Tk):
             }
             book_json["chapters"].append(chapter)
 
+        # Extract images and store them
+        self.book_images = {}
+        for item in book.get_items_of_type(ebooklib.ITEM_IMAGE):
+            self.book_images[item.get_name()] = item.content
+
         return book_json
 
     def paginate_text(self, text_data):
@@ -109,13 +135,27 @@ class EPUBToJSONConverter(tk.Tk):
         pages = {}
         current_page = 1
         current_content = []
+        current_word_count = 0
 
         for paragraph in paragraphs:
-            current_content.append(str(paragraph))
-            if len(current_content) >= self.lines_per_page:
-                pages[current_page] = ''.join(current_content)
+            if paragraph.name == 'img':
+                if current_content:
+                    pages[current_page] = ''.join(current_content)
+                    current_page += 1
+                    current_content = []
+                    current_word_count = 0
+                pages[current_page] = str(paragraph)
                 current_page += 1
-                current_content = []
+            else:
+                paragraph_text = paragraph.get_text()
+                word_count = len(paragraph_text.split())
+                if current_word_count + word_count > 555:
+                    pages[current_page] = ''.join(current_content)
+                    current_page += 1
+                    current_content = []
+                    current_word_count = 0
+                current_content.append(str(paragraph))
+                current_word_count += word_count
 
         if current_content:
             pages[current_page] = ''.join(current_content)
@@ -208,6 +248,7 @@ class EPUBToJSONConverter(tk.Tk):
             self.book_json["soundtracks"][soundtrack_key] = mp3_file
             messagebox.showinfo("Success", "Soundtrack added successfully!")
 
+    
     def save_json(self):
         if not self.book_json:
             messagebox.showerror("Error", "No EPUB file loaded.")
@@ -216,37 +257,30 @@ class EPUBToJSONConverter(tk.Tk):
         folder_path = filedialog.askdirectory()
         if folder_path:
             title = self.book_json["title"]
-            # Create a folder named after the title of the book within the chosen directory
             output_folder = os.path.join(folder_path, f'{title}_conversion')
             os.makedirs(output_folder, exist_ok=True)
 
-            # Create a dictionary to store soundtracks for the book
-            book_soundtracks = {}
+            # Extract images from EPUB to the output_folder
+            epub_file_path = self.current_file_path  # Assuming current_file_path is set correctly
+            images_folder = os.path.join(output_folder, 'images')
+            os.makedirs(images_folder, exist_ok=True)
+            extract_images_from_epub(epub_file_path, images_folder)
 
-            # Iterate through global soundtracks dictionary and copy files
-            for key, mp3_file in self.book_json["soundtracks"].items():
-                # Determine the chapter title and create a folder for each chapter
-                chapter_title = self.book_json["chapters"][self.current_chapter]["title"]
-                chapter_folder = os.path.join(output_folder, chapter_title.replace(" ", "_"))
-                os.makedirs(chapter_folder, exist_ok=True)
-
-                # Create relative path for the mp3 file
-                mp3_filename = os.path.basename(mp3_file)
-                relative_path = os.path.join(chapter_folder, mp3_filename)
-
-                # Copy mp3 file to chapter folder
-                shutil.copyfile(mp3_file, relative_path)
-
-                # Store in book soundtracks dictionary
-                book_soundtracks[key] = relative_path
+            # Update image paths in the JSON
+            for chapter in self.book_json["chapters"]:
+                updated_images = []
+                for img_path in chapter["images"]:
+                    img_filename = os.path.basename(img_path)
+                    updated_images.append(os.path.join('images', img_filename))
+                chapter["images"] = updated_images
 
             # Save the updated book JSON to a file
-            self.book_json["soundtracks"] = book_soundtracks
             json_output_file = os.path.join(output_folder, 'book.json')
             with open(json_output_file, 'w') as f:
                 json.dump(self.book_json, f, indent=4)
 
             messagebox.showinfo("Success", f"JSON file saved successfully in {json_output_file}")
+
 
     def update_page_number_display(self):
         total_pages = 0

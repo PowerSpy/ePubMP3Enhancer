@@ -234,12 +234,25 @@ class EPUBToJSONConverter(tk.Tk):
         except ValueError:
             messagebox.showerror("Invalid Input", "Page numbers must be integers.")
             return
+        
         max_page = 0
-        for idx in range(len(self.book_json["chapters"])):
-            max_page += len(self.book_json["chapters"][idx]["text"])
+        for chapter in self.book_json["chapters"]:
+            max_page += len(chapter["text"])
 
         if start_page > end_page or start_page < 1 or end_page > max_page:
             messagebox.showerror("Invalid Input", f"Invalid page range. Please enter a range between 1 and {max_page}.")
+            return
+
+        # Check for overlap with existing soundtracks
+        overlap_detected = False
+        for existing_range in self.book_json["soundtracks"]:
+            existing_start, existing_end = map(int, existing_range.split('-'))
+            if not (end_page < existing_start or start_page > existing_end):
+                overlap_detected = True
+                break
+
+        if overlap_detected:
+            messagebox.showerror("Overlap Detected", "Song overlapping is not supported at the moment. Please select a non-overlapping range.")
             return
 
         mp3_file = filedialog.askopenfilename(filetypes=[("MP3 files", "*.mp3")])

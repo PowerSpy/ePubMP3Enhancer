@@ -98,7 +98,9 @@ This script provides a GUI to read the converted JSON book. It displays the book
     - Soundtracks will play automatically for pages that have associated MP3 files.
 
 ## Additional Information
+**Disclaimer:** Currently does not support images and just displays each one on a different page!
 
 These scripts are designed to enhance the ePub reading experience by allowing the addition of soundtracks to specific page ranges. The `createbook.py` script handles the conversion and soundtrack embedding, while `textreader.py` provides a seamless reading and listening experience.
 
 Feel free to contribute to the project or modify the scripts to suit your needs.
+

@@ -3,3 +3,4 @@ beautifulsoup4
 tkinterhtml
 PyQt5
 vlc
+tkinter

@@ -1,5 +1,6 @@
 ebooklib
 beautifulsoup4
+tkinter
 tkinterhtml
 PyQt5
 vlc

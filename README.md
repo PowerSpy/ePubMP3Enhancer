@@ -28,12 +28,12 @@ This script provides a graphical user interface (GUI) for converting ePub books 
     ```
 2. **Install dependencies**:
     ```bash
-    pip install ebooklib beautifulsoup4 tkinterhtml
+    pip install -r requirements.txt
     ```
 
     On macOS, depending on your setup, use:
     ```bash
-    pip3 install ebooklib beautifulsoup4 tkinterhtml
+    pip3 install -r requirements.txt
     ```
 3. **Run the script**:
     ```bash
@@ -71,12 +71,12 @@ This script provides a GUI to read the converted JSON book. It displays the book
     ```
 2. **Install dependencies**:
     ```bash
-    pip install PyQt5
+    pip install -r requirements.txt
     ```
 
     On macOS, depending on your setup, use:
     ```bash
-    pip3 install PyQt5
+    pip3 install -r requirements.txt
     ```
 3. **Run the script**:
     ```bash
@@ -90,7 +90,7 @@ This script provides a GUI to read the converted JSON book. It displays the book
 
 4. **Using the GUI**:
     - Load the JSON book file.
-    - Navigate through the book using the navigation buttons.
+    - Navigate through the book using the navigation buttons. (left and right arrow keys)
     - Soundtracks will play automatically for pages that have associated MP3 files.
 
 ## Additional Information

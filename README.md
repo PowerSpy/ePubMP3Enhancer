@@ -24,9 +24,13 @@ This script provides a graphical user interface (GUI) for converting ePub books 
 1. **Clone the GitHub repository**:
     ```bash
     git clone https://github.com/powerspyy/ePubMP3Enhancer.git
+    ```
+2. **CD to the new directory**:
+    ```bash
     cd ePubMP3Enhancer
     ```
-2. **Install dependencies**:
+
+3. **Install dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
@@ -35,7 +39,7 @@ This script provides a graphical user interface (GUI) for converting ePub books 
     ```bash
     pip3 install -r requirements.txt
     ```
-3. **Run the script**:
+4. **Run the script**:
     ```bash
     python createbook.py
     ```
@@ -45,7 +49,7 @@ This script provides a graphical user interface (GUI) for converting ePub books 
     python3 createbook.py
     ```
 
-4. **Using the GUI**:
+5. **Using the GUI**:
     - Click "Load ePub" to select and load an ePub file.
     - Navigate through the book using "Previous Page", "Next Page", "Previous Chapter", and "Next Chapter" buttons.
     - Add soundtracks by specifying a page range and selecting an MP3 file.
@@ -64,12 +68,12 @@ This script provides a GUI to read the converted JSON book. It displays the book
 - PyQt5
 
 #### How to Use
-1. **Clone the GitHub repository**:
+1. **Clone the GitHub repository**(Unless done previously):
     ```bash
     git clone https://github.com/powerspyy/ePubMP3Enhancer.git
     cd ePubMP3Enhancer
     ```
-2. **Install dependencies**:
+2. **Install dependencies**(Unless done previously):
     ```bash
     pip install -r requirements.txt
     ```

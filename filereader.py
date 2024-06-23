@@ -3,14 +3,14 @@ import os
 import json
 import base64
 import vlc
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QMessageBox
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import Qt, QTimer
 
 class EpubReaderApp(QMainWindow):
-    def __init__(self, epub_folder):
+    def __init__(self):
         super().__init__()
-        self.epub_folder = epub_folder
+        self.epub_folder = None
         self.book = {}
         self.current_page = 1
         self.soundtracks = {}
@@ -35,6 +35,18 @@ class EpubReaderApp(QMainWindow):
         self.web_view = QWebEngineView()
         self.web_view.setFixedSize(816, 1056)
         center_layout.addWidget(self.web_view, 0, Qt.AlignCenter)
+
+        # Display an empty page initially
+        self.web_view.setHtml("<html><body><h1>Select a converted ePub to display!</body></html>")
+
+        # Set a timer to prompt the user for the EPUB folder after the main window is shown
+        QTimer.singleShot(100, self.prompt_for_epub_folder)
+
+    def prompt_for_epub_folder(self):
+        self.epub_folder = QFileDialog.getExistingDirectory(None, "Select EPUB Folder")
+        if not self.epub_folder:
+            QMessageBox.critical(self, "Error", "No folder selected. The application will now exit.")
+            sys.exit(-1)  # Exit if no folder selected
 
         # Load and display EPUB content
         self.load_epub_content()
@@ -158,12 +170,6 @@ class EpubReaderApp(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    
-    # Prompt user for EPUB folder
-    epub_folder = QFileDialog.getExistingDirectory(None, "Select EPUB Folder")
-    if not epub_folder:
-        sys.exit(-1)  # Exit if no folder selected
-    
-    reader = EpubReaderApp(epub_folder)
+    reader = EpubReaderApp()
     reader.show()
     sys.exit(app.exec_())

@@ -4,3 +4,4 @@ tkinter
 tkinterhtml
 PyQt5
 vlc
+tkinter

@@ -24,18 +24,22 @@ This script provides a graphical user interface (GUI) for converting ePub books 
 1. **Clone the GitHub repository**:
     ```bash
     git clone https://github.com/powerspyy/ePubMP3Enhancer.git
+    ```
+2. **CD to the new directory**:
+    ```bash
     cd ePubMP3Enhancer
     ```
-2. **Install dependencies**:
+
+3. **Install dependencies**:
     ```bash
-    pip install ebooklib beautifulsoup4 tkinterhtml
+    pip install -r requirements.txt
     ```
 
     On macOS, depending on your setup, use:
     ```bash
-    pip3 install ebooklib beautifulsoup4 tkinterhtml
+    pip3 install -r requirements.txt
     ```
-3. **Run the script**:
+4. **Run the script**:
     ```bash
     python createbook.py
     ```
@@ -45,7 +49,7 @@ This script provides a graphical user interface (GUI) for converting ePub books 
     python3 createbook.py
     ```
 
-4. **Using the GUI**:
+5. **Using the GUI**:
     - Click "Load ePub" to select and load an ePub file.
     - Navigate through the book using "Previous Page", "Next Page", "Previous Chapter", and "Next Chapter" buttons.
     - Add soundtracks by specifying a page range and selecting an MP3 file.
@@ -64,19 +68,19 @@ This script provides a GUI to read the converted JSON book. It displays the book
 - PyQt5
 
 #### How to Use
-1. **Clone the GitHub repository**:
+1. **Clone the GitHub repository**(Unless done previously):
     ```bash
     git clone https://github.com/powerspyy/ePubMP3Enhancer.git
     cd ePubMP3Enhancer
     ```
-2. **Install dependencies**:
+2. **Install dependencies**(Unless done previously):
     ```bash
-    pip install PyQt5
+    pip install -r requirements.txt
     ```
 
     On macOS, depending on your setup, use:
     ```bash
-    pip3 install PyQt5
+    pip3 install -r requirements.txt
     ```
 3. **Run the script**:
     ```bash
@@ -90,11 +94,13 @@ This script provides a GUI to read the converted JSON book. It displays the book
 
 4. **Using the GUI**:
     - Load the JSON book file.
-    - Navigate through the book using the navigation buttons.
+    - Navigate through the book using the navigation buttons. (left and right arrow keys)
     - Soundtracks will play automatically for pages that have associated MP3 files.
 
 ## Additional Information
+**Disclaimer:** Currently does not support images and just displays each one on a different page!
 
 These scripts are designed to enhance the ePub reading experience by allowing the addition of soundtracks to specific page ranges. The `createbook.py` script handles the conversion and soundtrack embedding, while `textreader.py` provides a seamless reading and listening experience.
 
 Feel free to contribute to the project or modify the scripts to suit your needs.
+

@@ -115,10 +115,11 @@ class EPUBToJSONConverter(tk.Tk):
             soup = BeautifulSoup(item.get_body_content().decode('utf-8'), 'html.parser')
             text_data = str(soup)
             chapter_text = self.paginate_text(text_data)
+            images_dict = {idx + 1: img['src'] for idx, img in enumerate(soup.find_all('img'))}
             chapter = {
                 "title": item.get_name() if item.get_name() else "Untitled Chapter",
                 "text": chapter_text,
-                "images": [img['src'] for img in soup.find_all('img')],
+                "images": images_dict,
             }
             book_json["chapters"].append(chapter)
 
@@ -131,36 +132,40 @@ class EPUBToJSONConverter(tk.Tk):
 
     def paginate_text(self, text_data):
         soup = BeautifulSoup(text_data, 'html.parser')
-        paragraphs = soup.find_all(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img'])
+        paragraphs_and_images = soup.find_all(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img'])
         pages = {}
         current_page = 1
         current_content = []
         current_word_count = 0
 
-        for paragraph in paragraphs:
-            if paragraph.name == 'img':
-                if current_content:
+        for item in paragraphs_and_images:
+            if item.name == 'img':
+                # Handle images
+                img_src = item.get('src')
+                if img_src:
+                    # Store image in current page
+                    current_content.append(str(item))
                     pages[current_page] = ''.join(current_content)
-                    current_page += 1
                     current_content = []
                     current_word_count = 0
-                pages[current_page] = str(paragraph)
-                current_page += 1
+                    current_page += 1
             else:
-                paragraph_text = paragraph.get_text()
+                # Handle paragraphs and other elements
+                paragraph_text = item.get_text()
                 word_count = len(paragraph_text.split())
                 if current_word_count + word_count > 555:
                     pages[current_page] = ''.join(current_content)
                     current_page += 1
                     current_content = []
                     current_word_count = 0
-                current_content.append(str(paragraph))
+                current_content.append(str(item))
                 current_word_count += word_count
 
         if current_content:
             pages[current_page] = ''.join(current_content)
 
         return pages
+
 
     def display_book(self):
         self.text_widget.config(state='normal')
@@ -270,7 +275,7 @@ class EPUBToJSONConverter(tk.Tk):
         folder_path = filedialog.askdirectory()
         if folder_path:
             title = self.book_json["title"]
-            output_folder = os.path.join(folder_path, f'{title}_conversion')
+            output_folder = os.path.join(folder_path, f'{title.replace(" ","")}conversion')
             os.makedirs(output_folder, exist_ok=True)
 
             # Extract images from EPUB to the output_folder
@@ -281,10 +286,10 @@ class EPUBToJSONConverter(tk.Tk):
 
             # Update image paths in the JSON
             for chapter in self.book_json["chapters"]:
-                updated_images = []
-                for img_path in chapter["images"]:
+                updated_images = {}
+                for page_number, img_path in chapter["images"].items():
                     img_filename = os.path.basename(img_path)
-                    updated_images.append(os.path.join('images', img_filename))
+                    updated_images[page_number] = os.path.join('images', img_filename)
                 chapter["images"] = updated_images
 
             # Save the updated book JSON to a file

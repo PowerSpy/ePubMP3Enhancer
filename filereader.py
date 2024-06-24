@@ -3,6 +3,7 @@ import os
 import json
 import base64
 import vlc
+import re
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QMessageBox
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import Qt, QTimer
@@ -11,6 +12,7 @@ class EpubReaderApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.epub_folder = None
+        self.book_contents = None
         self.book = {}
         self.current_page = 1
         self.soundtracks = {}
@@ -91,25 +93,46 @@ class EpubReaderApp(QMainWindow):
         html_page = "<html><head><style>img { max-width: 100%; height: auto; }</style></head><body>"
         
         # Check if the content is a dictionary (indicating it has text and images)
-        if isinstance(html_content, dict):
-            for key, value in html_content.items():
-                if key == "text":
-                    html_page += value
-                elif key == "images":
-                    for img_path in value:
-                        # Encode image data to base64
-                        with open(os.path.join(self.epub_folder, img_path), "rb") as img_file:
-                            img_data = base64.b64encode(img_file.read()).decode("utf-8")
-                        # Embed image in HTML
-                        html_page += f'<img src="data:image/jpeg;base64,{img_data}" /><br>'
+        if isinstance(html_content, str):
+            processed_html = self.process_html_with_images(html_content)
+            html_page += processed_html
         else:
-            # If the content is not a dictionary, assume it's plain HTML text
-            html_page += html_content
-        
+            # If the content is not as expected, show an error message
+            self.show_error_message("Invalid content format. Unable to display.")
+
         html_page += "</body></html>"
         
         # Display HTML content in QWebEngineView
         self.web_view.setHtml(html_page)
+
+
+    def process_html_with_images(self, html_content):
+        img_pattern = r'<img\s+[^>]*src="([^"]+)"[^>]*>'  # Regex to extract image src
+        processed_html = html_content
+
+        # Track processed images to avoid duplicates
+        processed_images = set()
+
+        for match in re.finditer(img_pattern, html_content):
+            img_tag = match.group(0)  # Get the entire img tag
+            img_src = match.group(1)  # Get the src attribute value
+            img_path = os.path.abspath(os.path.join(self.epub_folder, img_src.replace("../", "")))
+            print("Checking Existing:", img_path)
+            if os.path.exists(img_path):
+                print("Exists:",img_path)
+                if img_src not in processed_images:
+                    with open(img_path, "rb") as img_file:
+                        print(1)
+                        img_data = base64.b64encode(img_file.read()).decode("utf-8")
+                        print("Open Success:", img_path, "\n")
+                    embedded_img_tag = f'<img src="data:image/jpeg;base64,{img_data}">'
+                    processed_html = processed_html.replace(img_tag, embedded_img_tag, 1)  # Replace only once
+                    processed_images.add(img_src)  # Add to processed images set
+            else:
+                print(f"Image not found: {img_path}")  # Print error if image not found
+
+        return processed_html
+
 
     def play_or_stop_soundtrack(self):
         if self.soundtracks:
